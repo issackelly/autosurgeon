@@ -20,5 +20,5 @@ thiserror = "1.0.37"
 
 [dev-dependencies]
 autosurgeon = { path = "../autosurgeon" }
-automerge = { version = "0.5.0" }
-automerge-test = "0.4.0"
+automerge = { git = "https://github.com/automerge/automerge.git", ref="9f7efc8de69e4e50eba3b95021fda758759b4fb5" }
+automerge-test = { git = "https://github.com/automerge/automerge.git", ref="9f7efc8de69e4e50eba3b95021fda758759b4fb5" }
