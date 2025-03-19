@@ -1,4 +1,4 @@
-use std::ops::RangeFull;
+use std::{borrow::Cow, ops::RangeFull};
 
 use automerge::ScalarValue;
 
@@ -100,7 +100,7 @@ pub trait Reconciler {
 /// pointing at an already existing map in the underlying document or transaction.
 pub trait MapReconciler {
     type Error: std::error::Error + From<StaleHeads>;
-    type EntriesIter<'a>: Iterator<Item = (&'a str, automerge::Value<'a>)>
+    type EntriesIter<'a>: Iterator<Item = (Cow<'a, str>, automerge::Value<'a>)>
     where
         Self: 'a;
 
@@ -148,8 +148,9 @@ pub trait MapReconciler {
         // an addition to Automerge
         let mut delenda = Vec::new();
         for (k, v) in self.entries() {
-            if !pred(k, v) {
-                delenda.push(k.to_string());
+            let k_string = k.to_string();
+            if !pred(k_string.as_str(), v) {
+                delenda.push(k_string);
             }
         }
         for k in &delenda {
@@ -770,7 +771,7 @@ struct InMapEntries<'a> {
 }
 
 impl<'a> Iterator for InMapEntries<'a> {
-    type Item = (&'a str, automerge::Value<'a>);
+    type Item = (Cow<'a, str>, automerge::Value<'a>);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.map_range

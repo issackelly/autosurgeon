@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     collections::{BTreeMap, HashMap},
     hash::Hash,
 };
@@ -39,7 +40,7 @@ pub(crate) fn hydrate_map_impl<'a, F, D, K, V, M>(
     extract_key: F,
 ) -> Result<M, crate::HydrateError>
 where
-    F: Fn(&'a str) -> Result<K, crate::HydrateError>,
+    F: Fn(Cow<'a, str>) -> Result<K, crate::HydrateError>,
     D: crate::ReadDoc,
     V: Hydrate,
     M: FromIterator<(K, V)>,
@@ -54,7 +55,7 @@ where
         ObjType::Map | ObjType::Table => doc
             .map_range(obj.clone(), ..)
             .map(move |am::iter::MapRangeItem { key, .. }| {
-                let val = V::hydrate(doc, obj, key.into())?;
+                let val = V::hydrate(doc, obj, key.clone().into())?;
                 let key_parsed: K = extract_key(key)?;
                 Ok((key_parsed, val))
             })
@@ -76,7 +77,7 @@ mod tests {
     use automerge as am;
     use std::collections::HashMap;
 
-    use crate::{hydrate, Hydrate};
+    use crate::{Hydrate, hydrate};
 
     #[derive(Debug, PartialEq)]
     struct User {

@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use autosurgeon::{reconcile, hydrate, hydrate_path, Reconcile, Hydrate, Prop};
 use automerge;
 
@@ -6,14 +8,13 @@ use automerge;
 struct ContactBook {
     #[key]
     id: String,
-    contacts: Vec<Contact>,
+    contacts: BTreeMap<String, Contact>,
 }
 
 #[derive(Reconcile, Hydrate, Clone, Debug, Eq, PartialEq)]
 struct Contact {
     name: String,
     addresses: Vec<Address>,
-    #[key]
     id: String,
 }
 
@@ -45,7 +46,10 @@ fn main() {
     };
 
     let contacts = ContactBook {
-        contacts: vec![bob, alice], 
+        contacts: BTreeMap::from_iter(vec![
+            (bob.id.to_string(), bob.clone()),
+            (alice.id.to_string(), alice.clone()),
+        ]),
         id: "My Contact Book".to_string()
     };
 
@@ -71,12 +75,10 @@ fn main() {
     ].into_iter());
     println!("That hydrates back to this via hydrate_path: {:#?}", contact_book);
 
-
-    let s_visit_alice: Result<Option<ContactBook>, _> = hydrate_path(&doc, &automerge::ROOT, vec![
-        Prop::Key("My Contact Book".into()),
-        Prop::Key("two".into())
+    let s_visit_alice: Result<Option<Contact>, _> = hydrate_path(&doc, &automerge::ROOT, vec![
+        "contacts".into(),
+        "two".into(),
     ].into_iter());
 
     println!("Let's Visit Alice at: {:#?}", s_visit_alice);
-
 }
