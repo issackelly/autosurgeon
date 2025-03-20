@@ -3,6 +3,12 @@ use std::collections::BTreeMap;
 use autosurgeon::{reconcile, hydrate, hydrate_path, Reconcile, Hydrate, Prop};
 use automerge;
 
+#[derive(Reconcile, Hydrate, Clone, Debug, Eq, PartialEq)]
+pub enum AddressKind {
+    Home,
+    Work(String),
+    Other,
+}
 
 #[derive(Reconcile, Hydrate, Clone, Debug, Eq, PartialEq)]
 struct ContactBook {
@@ -22,6 +28,7 @@ struct Contact {
 struct Address {
     line_one: String,
     line_two: String,
+    kind: AddressKind,
 }
 fn main() {
 
@@ -34,6 +41,7 @@ fn main() {
         addresses: vec![Address {
             line_one: "line one".to_string(),
             line_two: "line two".to_string(),
+            kind: AddressKind::Home,
         }],
     };
     let alice = Contact {
@@ -42,6 +50,7 @@ fn main() {
         addresses: vec![Address {
             line_one: "33 Rockefeller Plaza".to_string(),
             line_two: "New York".to_string(),
+            kind: AddressKind::Work("Suite 420".to_string()),
         }],
     };
 
@@ -71,7 +80,6 @@ fn main() {
 
     // Let's hydrate the whole document but naively use the hydrate_path
     let contact_book: Result<Option<ContactBook>, _> = hydrate_path(&doc, &automerge::ROOT, vec![
-        Prop::Key("My Contact Book".into()),
     ].into_iter());
     println!("That hydrates back to this via hydrate_path: {:#?}", contact_book);
 
